@@ -23,7 +23,8 @@
     "test": "turbo run test",
     "publish": "turbo run build lint test && yarn workspace langchain npm publish",
     "example": "turbo run start --filter langchain-examples --",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "release": "release-it"
   },
   "author": "Langchain",
   "license": "MIT",
@@ -33,6 +34,7 @@
     "husky": "^8.0.3",
     "lint-staged": "^13.1.1",
     "prettier": "^2.8.3",
+    "release-it": "^15.6.1",
     "typescript": "^4.9.5"
   },
   "dependencies": {
