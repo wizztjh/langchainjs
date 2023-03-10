@@ -1,8 +1,7 @@
 import { Configuration, OpenAIApi, CreateEmbeddingRequest } from "openai";
-import { backOff } from "exponential-backoff";
 import fetchAdapter from "../util/axios-fetch-adapter.js";
 import { chunkArray } from "../util/index.js";
-import { Embeddings } from "./base.js";
+import { Embeddings, EmbeddingsParams } from "./base.js";
 
 interface ModelParams {
   modelName: string;
@@ -13,21 +12,19 @@ export class OpenAIEmbeddings extends Embeddings implements ModelParams {
 
   batchSize = 20;
 
-  maxRetries = 6;
-
   private apiKey: string;
 
   private client: OpenAIApi;
 
   constructor(
-    fields?: Partial<ModelParams> & {
-      verbose?: boolean;
-      batchSize?: number;
-      maxRetries?: number;
-      openAIApiKey?: string;
-    }
+    fields?: Partial<ModelParams> &
+      EmbeddingsParams & {
+        verbose?: boolean;
+        batchSize?: number;
+        openAIApiKey?: string;
+      }
   ) {
-    super();
+    super(fields ?? {});
 
     const apiKey = fields?.openAIApiKey ?? process.env.OPENAI_API_KEY;
     if (!apiKey) {
@@ -37,7 +34,6 @@ export class OpenAIEmbeddings extends Embeddings implements ModelParams {
     this.modelName = fields?.modelName ?? this.modelName;
     this.batchSize = fields?.batchSize ?? this.batchSize;
     this.apiKey = apiKey;
-    this.maxRetries = fields?.maxRetries ?? this.maxRetries;
   }
 
   async embedDocuments(texts: string[]): Promise<number[][]> {
@@ -75,11 +71,9 @@ export class OpenAIEmbeddings extends Embeddings implements ModelParams {
       });
       this.client = new OpenAIApi(clientConfig);
     }
-    const makeCompletionRequest = () => this.client.createEmbedding(request);
-    return backOff(makeCompletionRequest, {
-      startingDelay: 4,
-      maxDelay: 10,
-      numOfAttempts: this.maxRetries,
-    });
+    return this.caller.call(
+      this.client.createEmbedding.bind(this.client),
+      request
+    );
   }
 }
