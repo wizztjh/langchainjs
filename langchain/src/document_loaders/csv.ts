@@ -3,8 +3,8 @@ import { csvParse } from "d3-dsv";
 import { TextLoader } from "./text.js";
 
 export class CSVLoader extends TextLoader {
-  constructor(filePath: string, public column: string) {
-    super(filePath);
+  constructor(filePathOrBlob: string | Blob, public column: string) {
+    super(filePathOrBlob);
   }
 
   protected async parse(raw: string): Promise<string[]> {
